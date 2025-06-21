@@ -216,7 +216,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
         }
         
         .sidebar .folder:before {
-            content: "▾ ";
+            content: "▼ ";
             font-size: 10px;
             margin-right: 5px;
             display: inline-block;
@@ -224,7 +224,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
         }
         
         .sidebar .folder.collapsed:before {
-            content: "▸ ";
+            content: "▶ ";
         }
         
         .sidebar .collapsed + ul {
