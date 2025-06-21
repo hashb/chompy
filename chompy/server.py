@@ -125,7 +125,8 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 
     def generate_index_html(self, hhc_obj):
         """Generate HTML index from HHC object"""
-        html = """<!DOCTYPE html>
+        html = """
+<!DOCTYPE html>
 <html>
 <head>
     <title>CHM Viewer</title>
@@ -320,7 +321,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
             if (firstLink) {
                 // Extract the path from the href
                 const href = firstLink.getAttribute('href');
-                const match = href.match(/loadContent\('([^']+)'\)/);
+                const match = href.match(/loadContent\\('([^']+)'\\)/);
                 if (match) {
                     const firstPath = match[1];
                     // Uncomment the next line to auto-load the first page
