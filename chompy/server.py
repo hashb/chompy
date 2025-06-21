@@ -125,9 +125,226 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 
     def generate_index_html(self, hhc_obj):
         """Generate HTML index from HHC object"""
-        html = "<html><head><title>CHM Contents</title></head><body><h1>Table of Contents</h1>"
+        html = '''<!DOCTYPE html>
+<html>
+<head>
+    <title>CHM Contents</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .sidebar li {
+            margin: 2px 0;
+        }
+        
+        .sidebar ul ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+        
+        .sidebar a {
+            color: #0066cc;
+            text-decoration: none;
+            display: block;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        
+        .sidebar a:hover {
+            background-color: #e6f3ff;
+            text-decoration: underline;
+        }
+        
+        .sidebar a.current {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sidebar a.current:hover {
+            background-color: #0052a3;
+            color: white;
+        }
+        
+        .sidebar .folder {
+            font-weight: bold;
+            color: #333;
+            padding: 3px 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .sidebar .folder:hover {
+            background-color: #e0e0e0;
+            border-radius: 3px;
+        }
+        
+        .sidebar .folder:before {
+            content: "▾ ";
+            font-size: 10px;
+            margin-right: 5px;
+            display: inline-block;
+            width: 10px;
+        }
+        
+        .sidebar .folder.collapsed:before {
+            content: "▸ ";
+        }
+        
+        .sidebar .collapsed + ul {
+            display: none;
+        }
+        
+        .welcome-text {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        #contentFrame {
+            display: none;
+        }
+        
+        .content.with-frame {
+            padding: 0;
+        }
+    </style>
+    <script>
+        function loadContent(path) {
+            const welcomeDiv = document.querySelector('.welcome-text');
+            const contentDiv = document.querySelector('.content');
+            let iframe = document.getElementById('contentFrame');
+            
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'contentFrame';
+                iframe.src = path;
+                contentDiv.appendChild(iframe);
+            } else {
+                iframe.src = path;
+            }
+            
+            // Hide welcome text and show iframe
+            if (welcomeDiv) {
+                welcomeDiv.style.display = 'none';
+            }
+            iframe.style.display = 'block';
+            contentDiv.classList.add('with-frame');
+            
+            // Update current page highlighting
+            updateCurrentPageHighlight(path);
+        }
+        
+        function updateCurrentPageHighlight(currentPath) {
+            // Remove current class from all links
+            const allLinks = document.querySelectorAll('.sidebar a');
+            allLinks.forEach(function(link) {
+                link.classList.remove('current');
+            });
+            
+            // Find and highlight the current page
+            const currentLink = document.querySelector(`.sidebar a[href="javascript:loadContent('${currentPath}')"]`);
+            if (currentLink) {
+                currentLink.classList.add('current');
+                
+                // Ensure parent folders are expanded
+                let parent = currentLink.parentElement;
+                while (parent) {
+                    if (parent.tagName === 'UL') {
+                        const folder = parent.previousElementSibling;
+                        if (folder && folder.classList.contains('folder')) {
+                            folder.classList.remove('collapsed');
+                        }
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        }
+        
+        function toggleFolder(element) {
+            element.classList.toggle('collapsed');
+        }
+        
+        // Add click handlers to folders when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const folders = document.querySelectorAll('.folder');
+            folders.forEach(function(folder) {
+                folder.addEventListener('click', function() {
+                    toggleFolder(this);
+                });
+            });
+            
+            // Optionally load the first page automatically
+            const firstLink = document.querySelector('.sidebar a[href*="loadContent"]');
+            if (firstLink) {
+                // Extract the path from the href
+                const href = firstLink.getAttribute('href');
+                const match = href.match(/loadContent\('([^']+)'\)/);
+                if (match) {
+                    const firstPath = match[1];
+                    // Uncomment the next line to auto-load the first page
+                    // loadContent(firstPath);
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Table of Contents</h2>
+'''
         html += self.generate_toc_html(hhc_obj)
-        html += "</body></html>"
+        html += '''
+    </div>
+    <div class="content">
+        <div class="welcome-text">
+            <h1>CHM File Viewer</h1>
+            <p>Welcome to the CHM file viewer. Use the table of contents on the left to navigate through the documentation.</p>
+            <p>Click on any link in the sidebar to view that page's content.</p>
+        </div>
+    </div>
+</body>
+</html>'''
         return html
 
     def generate_toc_html(self, node):
@@ -139,11 +356,27 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
                 if hasattr(child.name, "decode")
                 else str(child.name)
             )
-            html += f"<li>{name}"
+            
+            # Skip items with no name
+            if not name or name == "None":
+                continue
+                
+            html += "<li>"
+            
+            # If it has a local link, make it clickable
             if hasattr(child, "local") and child.local:
-                html = html[: -len(name)] + f'<a href="{child.local}">{name}</a>'
+                html += f'<a href="javascript:loadContent(\'{child.local}\')">{name}</a>'
+            else:
+                # If it's a folder (has children but no local link), style as folder
+                if hasattr(child, "children") and child.children:
+                    html += f'<span class="folder">{name}</span>'
+                else:
+                    html += f'<span class="folder">{name}</span>'
+            
+            # Add nested children
             if hasattr(child, "children") and child.children:
                 html += self.generate_toc_html(child)
+            
             html += "</li>"
         html += "</ul>"
         return html
