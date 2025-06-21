@@ -66,7 +66,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
         """Handle HEAD requests by calling do_GET but not sending content"""
         self._head_request = True
         self.do_GET()
-    
+
     def do_GET(self):
         try:
             # Remove leading slash and decode URL
@@ -90,7 +90,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
                 # Only send content for GET requests, not HEAD requests
-                if not getattr(self, '_head_request', False):
+                if not getattr(self, "_head_request", False):
                     if isinstance(content, str):
                         self.wfile.write(content.encode("utf-8"))
                     else:
@@ -115,9 +115,9 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html")
             self.send_header("Content-Length", str(len(html)))
             self.end_headers()
-            
+
             # Only send content for GET requests, not HEAD requests
-            if not getattr(self, '_head_request', False):
+            if not getattr(self, "_head_request", False):
                 self.wfile.write(html.encode("utf-8"))
         except Exception as e:
             print(f"Error generating index: {e}")
@@ -125,10 +125,11 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 
     def generate_index_html(self, hhc_obj):
         """Generate HTML index from HHC object"""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html>
 <head>
-    <title>CHM Contents</title>
+    <title>CHM Viewer</title>
+    <meta charset="UTF-8">
     <style>
         body {
             margin: 0;
@@ -332,9 +333,9 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
 <body>
     <div class="sidebar">
         <h2>Table of Contents</h2>
-'''
+"""
         html += self.generate_toc_html(hhc_obj)
-        html += '''
+        html += """
     </div>
     <div class="content">
         <div class="welcome-text">
@@ -344,7 +345,7 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
         return html
 
     def generate_toc_html(self, node):
@@ -356,27 +357,29 @@ class CHMRequestHandler(BaseHTTPRequestHandler):
                 if hasattr(child.name, "decode")
                 else str(child.name)
             )
-            
+
             # Skip items with no name
             if not name or name == "None":
                 continue
-                
+
             html += "<li>"
-            
+
             # If it has a local link, make it clickable
             if hasattr(child, "local") and child.local:
-                html += f'<a href="javascript:loadContent(\'{child.local}\')">{name}</a>'
+                html += (
+                    f"<a href=\"javascript:loadContent('{child.local}')\">{name}</a>"
+                )
             else:
                 # If it's a folder (has children but no local link), style as folder
                 if hasattr(child, "children") and child.children:
                     html += f'<span class="folder">{name}</span>'
                 else:
                     html += f'<span class="folder">{name}</span>'
-            
+
             # Add nested children
             if hasattr(child, "children") and child.children:
                 html += self.generate_toc_html(child)
-            
+
             html += "</li>"
         html += "</ul>"
         return html
