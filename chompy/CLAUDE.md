@@ -4,37 +4,63 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Chompy is a CHM (Compiled HTML Help) file viewer originally designed for Symbian/PyS60 mobile devices. The project provides both online and offline modes for viewing CHM files, with a built-in HTTP server for online mode and direct file extraction for offline mode.
+Chompy is a modern CHM (Compiled HTML Help) file viewer and HTTP server. Originally designed for Symbian/PyS60 devices, it has been modernized to work with standard Python 3 installations. The project provides both command-line tools and an HTTP server for viewing CHM files.
 
 ## Architecture
 
 ### Core Components
 
-- **chom.py**: Main application entry point with GUI using appuifw (Symbian UI framework)
-  - `Chompy` class: Main application controller with file browser and recent files management
-  - `HHCViewer` class: Content viewer for navigating CHM table of contents
-- **server.py**: HTTP server for online CHM viewing mode (serves on localhost:8081)
-- **pychmlib/**: CHM file parsing library
+- **chm_server.py**: Modern HTTP server for serving CHM files via web browser
+- **chm_viewer.py**: Command-line tool for viewing and extracting CHM content
+- **server.py**: Core HTTP server implementation using Python's built-in HTTP server
+- **pychmlib/**: CHM file parsing library (Python 3 compatible)
   - `chm.py`: Core CHM file format parser with LZX decompression support
-  - `lzx.py`: LZX decompression algorithm implementation
+  - `lzx.py`: LZX decompression algorithm implementation (fixed for Python 3)
 - **hhc.py**: HTML Help Contents (HHC) file parser for table of contents
-- **chm_filebrowser.py**: File browser component for CHM file selection
-- **HTMLParser.py**: Modified HTML parser (contains syntax warning with regex escape sequence)
+- **HTMLParser.py**: Modified HTML parser (fixed regex warnings)
 - **markupbase.py**: Base classes for markup parsing
+
+### Legacy Components (Symbian-specific, kept for reference)
+- **chom.py**: Original Symbian GUI application (requires appuifw, e32, e32dbm)
+- **chm_filebrowser.py**: Original Symbian file browser component
 
 ### Key Features
 
-- **Dual Mode Operation**: Online mode (HTTP server) and offline mode (direct extraction)
+- **HTTP Server**: Serves CHM files via modern HTTP server with table of contents navigation
+- **Command-line Viewer**: Extract and view CHM content without GUI dependencies
 - **CHM Format Support**: Full CHM file parsing including compressed content (LZX algorithm)
-- **Navigation**: Table of contents browsing with hierarchical navigation
-- **File Management**: Recent files tracking with persistent storage
-- **Mobile Optimized**: Designed for Symbian devices with touch-friendly navigation
+- **Python 3 Compatible**: Fixed byte/string handling and modernized syntax
+- **Cross-platform**: Works on any system with Python 3
 
 ## Development Commands
 
+### CHM Server
+```bash
+# Serve a CHM file via HTTP
+python3 chm_server.py path/to/file.chm
+
+# Serve with custom host/port
+python3 chm_server.py path/to/file.chm --host 0.0.0.0 --port 8080
+
+# Auto-shutdown after timeout
+python3 chm_server.py path/to/file.chm --timeout 30
+```
+
+### CHM Viewer/Extractor
+```bash
+# List table of contents
+python3 chm_viewer.py path/to/file.chm --list
+
+# Extract specific file
+python3 chm_viewer.py path/to/file.chm --extract "path/in/chm.htm"
+
+# Extract to output file
+python3 chm_viewer.py path/to/file.chm --extract "path/in/chm.htm" --output extracted.htm
+```
+
 ### Testing
 ```bash
-# Run unit tests (requires Python package structure fixes)
+# Run unit tests
 python3 -m unittest discover pychmlib/tests/ -v
 
 # Test individual modules
@@ -48,30 +74,35 @@ python3 -m unittest pychmlib.tests.test_lzx
 find . -name "*.py" -exec python3 -m py_compile {} \;
 ```
 
-### Running the Application
-```bash
-# Main application (requires Symbian/PyS60 environment)
-python chom.py
+## Bug Fixes Applied
 
-# HTTP server standalone (for testing)
-python server.py path/to/file.chm
-```
-
-## Known Issues
-
-- HTMLParser.py:46 contains invalid regex escape sequence `\s` that should be `\\s`
-- Tests have import issues due to relative imports without proper package structure
-- Application is designed for Symbian/PyS60 environment and won't run on standard Python installations without modifications
+- Fixed Python 3 compatibility issues in LZX decompression (`pychmlib/lzx.py`)
+- Fixed byte/string handling throughout CHM parsing library
+- Fixed regex escape sequence warning in `HTMLParser.py`
+- Fixed relative import issues in test files
+- Updated HTTP server to use modern `http.server` instead of raw sockets
+- Fixed HHC parser to handle malformed content gracefully
 
 ## File Structure Notes
 
-- Configuration stored in E:\Data\chompy\ (Symbian path)
-- Temporary HTML files generated for browser viewing
-- CHM test files located in pychmlib/tests/chm_files/
-- LZX test files in pychmlib/tests/lzx_files/
+- CHM test files located in `pychmlib/tests/chm_files/`
+- LZX test files in `pychmlib/tests/lzx_files/`
+- Both executable scripts (`chm_server.py`, `chm_viewer.py`) are in the root directory
 
 ## Dependencies
 
-The project uses only Python standard library modules plus:
-- Symbian-specific modules: appuifw, e32, e32dbm (not available on standard Python)
-- No external package dependencies or requirements.txt file
+- **Python 3.6+**: Core requirement
+- **Standard library only**: No external dependencies required
+- **Legacy Symbian modules**: `appuifw`, `e32`, `e32dbm` (only needed for legacy `chom.py`)
+
+## Usage Examples
+
+```bash
+# Start server for a CHM file
+python3 chm_server.py pychmlib/tests/chm_files/CHM-example.chm
+
+# Then open http://127.0.0.1:8081/ in your web browser
+
+# Or use the command-line viewer
+python3 chm_viewer.py pychmlib/tests/chm_files/CHM-example.chm --list
+```

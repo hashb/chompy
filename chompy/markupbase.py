@@ -3,7 +3,7 @@
 import re
 import string
 
-_declname_match = re.compile(r'[a-zA-Z][-_.a-zA-Z0-9]*\s*').match
+_declname_match = re.compile(r"[a-zA-Z][-_.a-zA-Z0-9]*\s*").match
 _declstringlit_match = re.compile(r'(\'[^\']*\'|"[^"]*")\s*').match
 
 del re
@@ -15,12 +15,10 @@ class ParserBase:
 
     def __init__(self):
         if self.__class__ is ParserBase:
-            raise RuntimeError(
-                "markupbase.ParserBase must be subclassed")
+            raise RuntimeError("markupbase.ParserBase must be subclassed")
 
     def error(self, message):
-        raise NotImplementedError(
-            "subclasses of ParserBase must override error()")
+        raise NotImplementedError("subclasses of ParserBase must override error()")
 
     def reset(self):
         self.lineno = 1
@@ -41,13 +39,13 @@ class ParserBase:
         nlines = string.count(rawdata, "\n", i, j)
         if nlines:
             self.lineno = self.lineno + nlines
-            pos = string.rindex(rawdata, "\n", i, j) # Should not fail
-            self.offset = j-(pos+1)
+            pos = string.rindex(rawdata, "\n", i, j)  # Should not fail
+            self.offset = j - (pos + 1)
         else:
-            self.offset = self.offset + j-i
+            self.offset = self.offset + j - i
         return j
 
-    _decl_otherchars = ''
+    _decl_otherchars = ""
 
     # Internal -- parse declaration (for use by subclasses).
     def parse_declaration(self, i):
@@ -57,7 +55,7 @@ class ParserBase:
         rawdata = self.rawdata
         j = i + 2
         assert rawdata[i:j] == "<!", "unexpected call to parse_declaration"
-        if rawdata[j:j+1] in ("-", ""):
+        if rawdata[j : j + 1] in ("-", ""):
             # Start of comment followed by buffer boundary,
             # or just a buffer boundary.
             return -1
@@ -67,12 +65,12 @@ class ParserBase:
         if j < 0:
             return j
         if decltype == "doctype":
-            self._decl_otherchars = ''
+            self._decl_otherchars = ""
         while j < n:
             c = rawdata[j]
             if c == ">":
                 # end of declaration syntax
-                data = rawdata[i+2:j]
+                data = rawdata[i + 2 : j]
                 if decltype == "doctype":
                     self.handle_decl(data)
                 else:
@@ -81,7 +79,7 @@ class ParserBase:
             if c in "\"'":
                 m = _declstringlit_match(rawdata, j)
                 if not m:
-                    return -1 # incomplete
+                    return -1  # incomplete
                 j = m.end()
             elif c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
                 name, j = self._scan_name(j, i)
@@ -93,11 +91,10 @@ class ParserBase:
                 else:
                     self.error("unexpected '[' char in declaration")
             else:
-                self.error(
-                    "unexpected %s char in declaration" % repr(rawdata[j]))
+                self.error("unexpected %s char in declaration" % repr(rawdata[j]))
             if j < 0:
                 return j
-        return -1 # incomplete
+        return -1  # incomplete
 
     # Internal -- scan past the internal subset in a <!DOCTYPE declaration,
     # returning the index just past any whitespace following the trailing ']'.
@@ -108,21 +105,20 @@ class ParserBase:
         while j < n:
             c = rawdata[j]
             if c == "<":
-                s = rawdata[j:j+2]
+                s = rawdata[j : j + 2]
                 if s == "<":
                     # end of buffer; incomplete
                     return -1
                 if s != "<!":
                     self.updatepos(declstartpos, j + 1)
-                    self.error("unexpected char in internal subset (in %s)"
-                               % repr(s))
+                    self.error("unexpected char in internal subset (in %s)" % repr(s))
                 if (j + 2) == n:
                     # end of buffer; incomplete
                     return -1
                 if (j + 4) > n:
                     # end of buffer; incomplete
                     return -1
-                if rawdata[j:j+4] == "<!--":
+                if rawdata[j : j + 4] == "<!--":
                     j = self.parse_comment(j, report=0)
                     if j < 0:
                         return j
@@ -132,8 +128,7 @@ class ParserBase:
                     return -1
                 if name not in ("attlist", "element", "entity", "notation"):
                     self.updatepos(declstartpos, j + 2)
-                    self.error(
-                        "unknown declaration %s in internal subset" % repr(name))
+                    self.error("unknown declaration %s in internal subset" % repr(name))
                 # handle the individual names
                 meth = getattr(self, "_parse_doctype_" + name)
                 j = meth(j, declstartpos)
@@ -175,7 +170,7 @@ class ParserBase:
             return -1
         # style content model; just skip until '>'
         rawdata = self.rawdata
-        if '>' in rawdata[j:]:
+        if ">" in rawdata[j:]:
             return string.find(rawdata, ">", j) + 1
         return -1
 
@@ -183,7 +178,7 @@ class ParserBase:
     def _parse_doctype_attlist(self, i, declstartpos):
         rawdata = self.rawdata
         name, j = self._scan_name(i, declstartpos)
-        c = rawdata[j:j+1]
+        c = rawdata[j : j + 1]
         if c == "":
             return -1
         if c == ">":
@@ -194,7 +189,7 @@ class ParserBase:
             name, j = self._scan_name(j, declstartpos)
             if j < 0:
                 return j
-            c = rawdata[j:j+1]
+            c = rawdata[j : j + 1]
             if c == "":
                 return -1
             if c == "(":
@@ -203,14 +198,14 @@ class ParserBase:
                     j = string.find(rawdata, ")", j) + 1
                 else:
                     return -1
-                while rawdata[j:j+1] in string.whitespace:
+                while rawdata[j : j + 1] in string.whitespace:
                     j = j + 1
                 if not rawdata[j:]:
                     # end of buffer, incomplete
                     return -1
             else:
                 name, j = self._scan_name(j, declstartpos)
-            c = rawdata[j:j+1]
+            c = rawdata[j : j + 1]
             if not c:
                 return -1
             if c in "'\"":
@@ -219,7 +214,7 @@ class ParserBase:
                     j = m.end()
                 else:
                     return -1
-                c = rawdata[j:j+1]
+                c = rawdata[j : j + 1]
                 if not c:
                     return -1
             if c == "#":
@@ -229,10 +224,10 @@ class ParserBase:
                 name, j = self._scan_name(j + 1, declstartpos)
                 if j < 0:
                     return j
-                c = rawdata[j:j+1]
+                c = rawdata[j : j + 1]
                 if not c:
                     return -1
-            if c == '>':
+            if c == ">":
                 # all done
                 return j + 1
 
@@ -243,11 +238,11 @@ class ParserBase:
             return j
         rawdata = self.rawdata
         while True:
-            c = rawdata[j:j+1]
+            c = rawdata[j : j + 1]
             if not c:
                 # end of buffer; incomplete
                 return -1
-            if c == '>':
+            if c == ">":
                 return j + 1
             if c in "'\"":
                 m = _declstringlit_match(rawdata, j)
@@ -262,10 +257,10 @@ class ParserBase:
     # Internal -- scan past <!ENTITY declarations
     def _parse_doctype_entity(self, i, declstartpos):
         rawdata = self.rawdata
-        if rawdata[i:i+1] == "%":
+        if rawdata[i : i + 1] == "%":
             j = i + 1
             while True:
-                c = rawdata[j:j+1]
+                c = rawdata[j : j + 1]
                 if not c:
                     return -1
                 if c in string.whitespace:
@@ -278,7 +273,7 @@ class ParserBase:
         if j < 0:
             return j
         while True:
-            c = self.rawdata[j:j+1]
+            c = self.rawdata[j : j + 1]
             if not c:
                 return -1
             if c in "'\"":
@@ -286,7 +281,7 @@ class ParserBase:
                 if m:
                     j = m.end()
                 else:
-                    return -1    # incomplete
+                    return -1  # incomplete
             elif c == ">":
                 return j + 1
             else:
