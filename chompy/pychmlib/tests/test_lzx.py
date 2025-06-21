@@ -15,7 +15,7 @@
 import unittest
 import struct
 
-from util import *
+from .util import *
 
 load_modules()
 
@@ -37,9 +37,9 @@ class LZXTest(unittest.TestCase):
         
     def assert_lzx_content(self, actual, filename):
         expected = read_file(get_filename(filename))
-        self.assertEquals(len(expected),len(actual))
+        self.assertEqual(len(expected),len(actual))
         expected = struct.unpack("B"*len(expected), expected)
-        self.assertEquals(list(expected), actual)
+        self.assertEqual(list(expected), actual)
 
 
 if __name__ == "__main__":

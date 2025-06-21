@@ -15,7 +15,7 @@
 from pychmlib.chm import chm
 
 import socket
-import thread
+import _thread
 import hhc
 
 HOST = '127.0.0.1'
@@ -31,12 +31,12 @@ TYPES = {".gif":"image/gif",
 ERR_NO_HHC = 1
 ERR_INVALID_CHM = 2
 
-LOCK = thread.allocate_lock()
+LOCK = _thread.allocate_lock()
 
 STOP_SERVER = False
 
 def start(filename, hhc_callback=None):
-    thread.start_new_thread(_serve_chm, (HOST, PORT, filename, hhc_callback))
+    _thread.start_new_thread(_serve_chm, (HOST, PORT, filename, hhc_callback))
     
 def stop():
     if LOCK.locked():
@@ -57,7 +57,9 @@ def _serve_chm(hostname, port, filename, hhc_callback=None):
     try:
         try:
             chm_file = chm(filename)
-        except Exception, e:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             hhc_callback(error=ERR_INVALID_CHM)
             return
         if hhc_callback:
@@ -72,7 +74,7 @@ def _serve_chm(hostname, port, filename, hhc_callback=None):
                 return #no hhc, so what's the sense of continuing?
         try:
             _serve_chm_forever(chm_file, hostname, port)
-        except Exception, e:
+        except Exception as e:
             # server shutting down because of error
             pass
     finally:
@@ -84,7 +86,7 @@ def _serve_chm_forever(chm_file, hostname, port):
         sock.bind((hostname, port))
         sock.listen(5)
         try:
-            while 1:
+            while True:
                 csock, caddr = sock.accept()
                 if STOP_SERVER:
                     break
@@ -145,4 +147,4 @@ if __name__ == '__main__':
         time.sleep(30)
         stop()
     else:
-        print "Please provide a CHM file as parameter"
+        print("Please provide a CHM file as parameter")

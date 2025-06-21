@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 import re
 
@@ -92,13 +92,13 @@ if __name__ == "__main__":
         def recur_print(content, spaces=0):
             if spaces > 0:
                 tab = " " * spaces
-                print tab + content.name
+                print(tab + content.name)
                 if content.local:
-                    print tab + "(" +content.local + ")"
+                    print(tab + "(" +content.local + ")")
             if content.is_inner_node:
                 for i in content.children:
                     recur_print(i, spaces + 2)
         recur_print(contents) 
         chm_file.close()
     else:
-        print "Please provide a CHM file as parameter"
+        print("Please provide a CHM file as parameter")

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import generators, nested_scopes
+
 from struct import unpack, pack
 
-import lzx
+from . import lzx
 
 _CHARSET_TABLE = { 
     0x0804:"gbk",
@@ -187,7 +187,7 @@ class _CHMFile:
                 name_length, bytes_read = self._get_encint(bytes, pointer);
                 pointer += bytes_read
                 iter_read += bytes_read
-                ui.name = unicode(bytes[pointer:pointer + name_length], 'utf-8').lower()
+                ui.name = str(bytes[pointer:pointer + name_length], 'utf-8').lower()
                 pointer += name_length
                 iter_read += name_length
                 ui.compressed, bytes_read = self._get_encint(bytes, pointer);
@@ -217,7 +217,7 @@ class _CHMFile:
             name_length, bytes_read = self._get_encint(bytes, pointer);
             pointer += bytes_read
             iter_read += bytes_read
-            name = unicode(bytes[pointer:pointer + name_length], 'utf-8').lower()
+            name = str(bytes[pointer:pointer + name_length], 'utf-8').lower()
             pointer += name_length
             iter_read += name_length
             block, bytes_read = self._get_encint(bytes, pointer);
@@ -247,6 +247,9 @@ class _CHMFile:
 
     def _get_encint(self, bytes, start):
         pointer = start
+        from pprint import pprint
+        pprint(bytes)
+        breakpoint()
         byte = ord(bytes[pointer])
         pointer += 1
         bi = 0
@@ -285,7 +288,7 @@ class UnitInfo:
             start_offset = self.offset % bytes_per_block
             end_offset = (self.offset + self.length) % bytes_per_block
             ini_block = start_block - start_block % self.chm.clcd.reset_interval
-            data = [None for i in xrange(end_block - start_block + 1)]
+            data = [None for i in range(end_block - start_block + 1)]
             start = ini_block
             block = self._get_lzx_block(start)
             while start <= end_block:

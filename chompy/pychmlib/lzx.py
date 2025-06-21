@@ -110,7 +110,7 @@ def create_lzx_block(block_no, window, bytes, block_length, prev_block=None):
     else:
         prev_content = []
     buf = _BitBuffer(bytes)
-    block.content = [0 for i in xrange(block_length)]
+    block.content = [0 for i in range(block_length)]
     if not lzx_state.header_read:
         lzx_state.header_read = True
         if buf.read_bits(1) == 1:
@@ -276,13 +276,13 @@ def _init_tree_length_table(table, buf, counter, table_length, pre_tree_table, p
         elif z == 17:
             y = buf.read_bits(4)
             y += 4
-            for j in xrange(y):
+            for j in range(y):
                 table[counter] = 0
                 counter += 1
         elif z == 18:
             y = buf.read_bits(5)
             y += 20
-            for j in xrange(y):
+            for j in range(y):
                 table[counter] = 0
                 counter += 1
         elif z == 19:
@@ -293,7 +293,7 @@ def _init_tree_length_table(table, buf, counter, table_length, pre_tree_table, p
             z = table[counter] - z
             if z < 0:
                 z += 17
-            for j in xrange(y):
+            for j in range(y):
                 table[counter] = z
                 counter += 1 
     
@@ -303,9 +303,9 @@ def _create_pre_tree_table(length_table, table_length, bits, max_symbol):
     table_mask = 1 << bits
     bit_mask = table_mask >> 1
     next_symbol = bit_mask
-    tmp = [0 for x in xrange(table_length)]
+    tmp = [0 for x in range(table_length)]
     while bit_num <= bits:
-        for x in xrange(max_symbol):
+        for x in range(max_symbol):
             if (length_table[x] == bit_num):
                 leaf = pos
                 pos += bit_mask
@@ -318,16 +318,16 @@ def _create_pre_tree_table(length_table, table_length, bits, max_symbol):
         bit_mask >>= 1
         bit_num += 1
     if pos != table_mask:
-        for x in xrange(pos, table_mask):
+        for x in range(pos, table_mask):
             tmp[x] = 0
         pos <<= 16
         table_mask <<= 16
         bit_mask = 1 << 15
         while bit_num <= 16:
-            for i in xrange(max_symbol):
+            for i in range(max_symbol):
                 if length_table[i] == bit_num:
                     leaf = pos >> 16
-                    for j in xrange(bit_num - bits):
+                    for j in range(bit_num - bits):
                         if tmp[leaf] == 0:
                             tmp[(next_symbol << 1)] = 0
                             tmp[(next_symbol << 1) + 1] = 0
@@ -346,7 +346,7 @@ def _create_pre_tree_table(length_table, table_length, bits, max_symbol):
     return tmp
 
 def _create_pre_length_table(buf):
-    return [buf.read_bits(_LZX_PRETREE_NUM_ELEMENTS_BITS) for i in xrange(_LZX_PRETREE_MAXSYMBOLS)]
+    return [buf.read_bits(_LZX_PRETREE_NUM_ELEMENTS_BITS) for i in range(_LZX_PRETREE_MAXSYMBOLS)]
 
 def _create_empty_block(win):
     window = 0
@@ -364,7 +364,7 @@ def _create_empty_block(win):
     block = _LzxBlock()
     lzx_state = block.lzx_state
     lzx_state._main_tree_elements = _NUM_CHARS + num_pos_slots * 8
-    lzx_state._main_tree_length_table = [0 for i in xrange(lzx_state._main_tree_elements)]
-    lzx_state._length_tree_length_table = [0 for i in xrange(_NUM_SECONDARY_LENGTHS)]
+    lzx_state._main_tree_length_table = [0 for i in range(lzx_state._main_tree_elements)]
+    lzx_state._length_tree_length_table = [0 for i in range(_NUM_SECONDARY_LENGTHS)]
     block.content_length = 0
     return block

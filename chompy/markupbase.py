@@ -94,7 +94,7 @@ class ParserBase:
                     self.error("unexpected '[' char in declaration")
             else:
                 self.error(
-                    "unexpected %s char in declaration" % `rawdata[j]`)
+                    "unexpected %s char in declaration" % repr(rawdata[j]))
             if j < 0:
                 return j
         return -1 # incomplete
@@ -115,7 +115,7 @@ class ParserBase:
                 if s != "<!":
                     self.updatepos(declstartpos, j + 1)
                     self.error("unexpected char in internal subset (in %s)"
-                               % `s`)
+                               % repr(s))
                 if (j + 2) == n:
                     # end of buffer; incomplete
                     return -1
@@ -133,7 +133,7 @@ class ParserBase:
                 if name not in ("attlist", "element", "entity", "notation"):
                     self.updatepos(declstartpos, j + 2)
                     self.error(
-                        "unknown declaration %s in internal subset" % `name`)
+                        "unknown declaration %s in internal subset" % repr(name))
                 # handle the individual names
                 meth = getattr(self, "_parse_doctype_" + name)
                 j = meth(j, declstartpos)
@@ -164,7 +164,7 @@ class ParserBase:
                 j = j + 1
             else:
                 self.updatepos(declstartpos, j)
-                self.error("unexpected char %s in internal subset" % `c`)
+                self.error("unexpected char %s in internal subset" % repr(c))
         # end of buffer reached
         return -1
 
@@ -188,7 +188,7 @@ class ParserBase:
             return -1
         if c == ">":
             return j + 1
-        while 1:
+        while True:
             # scan a series of attribute descriptions; simplified:
             #   name type [value] [#constraint]
             name, j = self._scan_name(j, declstartpos)
@@ -242,7 +242,7 @@ class ParserBase:
         if j < 0:
             return j
         rawdata = self.rawdata
-        while 1:
+        while True:
             c = rawdata[j:j+1]
             if not c:
                 # end of buffer; incomplete
@@ -264,7 +264,7 @@ class ParserBase:
         rawdata = self.rawdata
         if rawdata[i:i+1] == "%":
             j = i + 1
-            while 1:
+            while True:
                 c = rawdata[j:j+1]
                 if not c:
                     return -1
@@ -277,7 +277,7 @@ class ParserBase:
         name, j = self._scan_name(j, declstartpos)
         if j < 0:
             return j
-        while 1:
+        while True:
             c = self.rawdata[j:j+1]
             if not c:
                 return -1

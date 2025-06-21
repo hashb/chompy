@@ -36,7 +36,7 @@ class Filebrowser:
         from key_codes import EKeyLeftArrow
         entries = self.current_dir.list_repr()
         if not self.current_dir.at_root:
-            entries.insert(0, (u"..", u""))
+            entries.insert(0, ("..", ""))
         self.lb = appuifw.Listbox(entries, self.lbox_observe)
         self.lb.bind(EKeyLeftArrow, self.left_arrow_handler)
         self.refresh()
@@ -48,7 +48,7 @@ class Filebrowser:
         self.lbox_observe(0)
 
     def refresh(self):
-        appuifw.app.title = u"File browser"
+        appuifw.app.title = "File browser"
         appuifw.app.menu = []
         appuifw.app.exit_key_handler = self.exit_key_handler
         appuifw.app.body = self.lb
@@ -88,7 +88,7 @@ class Filebrowser:
             return
         entries = self.current_dir.list_repr()
         if not self.current_dir.at_root:
-            entries.insert(0, (u"..", u""))
+            entries.insert(0, ("..", ""))
         self.lb.set_list(entries, focused_item)
 
 if __name__ == '__main__':

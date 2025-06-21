@@ -19,15 +19,15 @@ import chm_filebrowser
 import os
 import e32dbm
 
-CONF_FILE = u"E:\\Data\\chompy\\chompy.cfg"
-INIT_FILE = u"E:\\Data\\chompy\\online.html"
-LOCAL_FILE = u"E:\\Data\\chompy\\offline.html"
-SEPARATOR = u"/"
+CONF_FILE = "E:\\Data\\chompy\\chompy.cfg"
+INIT_FILE = "E:\\Data\\chompy\\online.html"
+LOCAL_FILE = "E:\\Data\\chompy\\offline.html"
+SEPARATOR = "/"
 
-INIT_HTML = u"""<html>
+INIT_HTML = """<html>
 <body>
 <script type="text/javascript">
-location.replace("http://localhost:""" + unicode(server.PORT) + """/%s")
+location.replace("http://localhost:""" + str(server.PORT) + """/%s")
 </script>
 </body>
 </html>
@@ -40,8 +40,8 @@ ERROR_TEMPLATE = """<html>
 </html>
 """
 
-ERR_READING = u"CHM File cannot be read"
-ERR_NO_HHC = u"CHM File contains no HHC file"
+ERR_READING = "CHM File cannot be read"
+ERR_NO_HHC = "CHM File contains no HHC file"
 
 if not os.path.exists("E:\\Data\\chompy"):
     os.makedirs("E:\\Data\\chompy")
@@ -77,7 +77,7 @@ class Chompy:
         self.fb.show()
         selected = self.fb.selected
         if selected:
-            file = unicode(selected)
+            file = str(selected)
             if file not in self.recent:
                 self.recent.append(file)
                 self.update_list(len(self.recent) - 1)    
@@ -86,7 +86,7 @@ class Chompy:
             self.refresh()
         
     def to_display(self, filename):
-        return unicode(os.path.basename(filename))
+        return str(os.path.basename(filename))
         
     def update_list(self, selected_index=None):
         if self.recent:
@@ -96,9 +96,9 @@ class Chompy:
             
     def get_list(self):
         if self.recent:
-            return map(self.to_display, self.recent)
+            return list(map(self.to_display, self.recent))
         else:
-            return [u"Select file"]
+            return ["Select file"]
         
     def lb_observe(self, index=None):
         if index is None:
@@ -111,7 +111,7 @@ class Chompy:
     def open(self, filename=None):
         if filename is None:
             filename = self.recent[self.lb.current()]
-        res = appuifw.popup_menu([u"Offline Mode", u"Online Mode"])
+        res = appuifw.popup_menu(["Offline Mode", "Online Mode"])
         if res == 0:
             self.open_offline(filename)
         elif res == 1:
@@ -170,21 +170,21 @@ class Chompy:
         self.app_lock.signal()
         
     def refresh(self):
-        menu_list = [(u"Browse for file", self.browse), (u"Exit", self.quit)]
+        menu_list = [("Browse for file", self.browse), ("Exit", self.quit)]
         if self.recent:
-            menu_list.insert(0, (u"Open", self.open))
-            menu_list.insert(2, (u"Remove", self.remove))
+            menu_list.insert(0, ("Open", self.open))
+            menu_list.insert(2, ("Remove", self.remove))
         appuifw.app.menu = menu_list
         appuifw.app.exit_key_handler = self.quit
-        appuifw.app.title = u"chompy"
+        appuifw.app.title = "chompy"
         appuifw.app.body = self.lb
         
     def exit_screen(self):
         appuifw.app.menu = []
         appuifw.app.exit_key_handler = self.quit
-        appuifw.app.title = u"chompy"
+        appuifw.app.title = "chompy"
         text = appuifw.Text()
-        text.set(u"Application can now be safely closed.")
+        text.set("Application can now be safely closed.")
         appuifw.app.body = text
     
     def show(self):
@@ -210,9 +210,9 @@ class HHCViewer:
         self.chm_file = chm_file
     
     def to_displayable_list(self):
-        entries = map(lambda x: x.name.decode(self.encoding), self.current_context.children)
+        entries = [x.name.decode(self.encoding) for x in self.current_context.children]
         if not self.current_context.is_root:
-            entries.insert(0, u"..")
+            entries.insert(0, "..")
         return entries
     
     def lb_observe(self, index=None):
@@ -228,7 +228,7 @@ class HHCViewer:
             selected = self.current_context.children[selected_index]
         if selected.is_inner_node:
             if selected.local:
-                res = appuifw.popup_menu([u"Load page", u"List contents"])
+                res = appuifw.popup_menu(["Load page", "List contents"])
                 if res == 0:
                     self.load_in_viewer(selected.local)
                 elif res == 1:
@@ -264,7 +264,7 @@ class HHCViewer:
         browser_lock.wait()
         
     def load_offline(self, local):
-        stall(u"Please wait while page is extracted from the archive...")
+        stall("Please wait while page is extracted from the archive...")
         e32.ao_yield()
         ui = self.chm_file.resolve_object("/"+local)
         try:
@@ -288,7 +288,7 @@ class HHCViewer:
         self.lb_observe()
         
     def refresh(self):
-        appuifw.app.menu = [(u"Open", self.open), (u"Exit", self.quit)]
+        appuifw.app.menu = [("Open", self.open), ("Exit", self.quit)]
         appuifw.app.exit_key_handler = self.quit
         appuifw.app.title = self.title
         appuifw.app.body = self.lb
@@ -302,9 +302,9 @@ class HHCViewer:
         appuifw.app.body = None
 
 
-def stall(msg = u"Please wait while CHM file is being read..."):
+def stall(msg = "Please wait while CHM file is being read..."):
     appuifw.app.menu = []
-    appuifw.app.title = u"Loading..."
+    appuifw.app.title = "Loading..."
     text = appuifw.Text()
     text.style = appuifw.STYLE_ITALIC
     text.set(msg)
@@ -312,7 +312,7 @@ def stall(msg = u"Please wait while CHM file is being read..."):
     appuifw.app.exit_key_handler = stop_quit
     
 def stop_quit():
-    appuifw.note(u"Cannot exit until process has finished", "info")
+    appuifw.note("Cannot exit until process has finished", "info")
 
 
 if __name__ == '__main__':

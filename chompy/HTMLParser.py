@@ -8,7 +8,7 @@
 # and CDATA (character data -- only end tags are special).
 
 
-import markupbase
+import _markupbase
 import re
 
 # Regular expressions used for parsing
@@ -64,7 +64,7 @@ class HTMLParseError(Exception):
         return result
 
 
-class HTMLParser(markupbase.ParserBase):
+class HTMLParser(_markupbase.ParserBase):
     """Find tags and other markup and call handler functions.
 
     Usage:
@@ -96,7 +96,7 @@ class HTMLParser(markupbase.ParserBase):
         self.rawdata = ''
         self.lasttag = '???'
         self.interesting = interesting_normal
-        markupbase.ParserBase.reset(self)
+        _markupbase.ParserBase.reset(self)
 
     def feed(self, data):
         """Feed data to the parser.
@@ -275,7 +275,7 @@ class HTMLParser(markupbase.ParserBase):
             else:
                 offset = offset + len(self.__starttag_text)
             self.error("junk characters in start tag: %s"
-                       % `rawdata[k:endpos][:20]`)
+                       % repr(rawdata[k:endpos][:20]))
         if end.endswith('/>'):
             # XHTML-style empty tag: <span attr="value" />
             self.handle_startendtag(tag, attrs)
@@ -326,7 +326,7 @@ class HTMLParser(markupbase.ParserBase):
         j = match.end()
         match = endtagfind.match(rawdata, i) # </ + tag + >
         if not match:
-            self.error("bad end tag: %s" % `rawdata[i:j]`)
+            self.error("bad end tag: %s" % repr(rawdata[i:j]))
         tag = match.group(1)
         self.handle_endtag(tag.lower())
         return j
@@ -369,7 +369,7 @@ class HTMLParser(markupbase.ParserBase):
         pass
 
     def unknown_decl(self, data):
-        self.error("unknown declaration: " + `data`)
+        self.error("unknown declaration: " + repr(data))
 
     # Internal -- helper to remove special character quoting
     def unescape(self, s):
