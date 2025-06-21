@@ -1,0 +1,21 @@
+# GitHub Pages configuration for CHM Viewer
+title: "CHM Viewer"
+description: "Online CHM (Compiled HTML Help) file viewer powered by Pyodide"
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# GitHub Pages specific
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - LICENSE
+  - Gemfile
+  - Gemfile.lock

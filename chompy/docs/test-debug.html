@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CHM Debug Test</title>
+</head>
+<body>
+    <h1>CHM Debug Test</h1>
+    <input type="file" id="fileInput" accept=".chm">
+    <button onclick="testCHM()">Test CHM Parsing</button>
+    <div id="output"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/pyodide@0.24.1/pyodide.js"></script>
+    <script>
+        let pyodide = null;
+        
+        async function initPyodide() {
+            if (pyodide) return pyodide;
+            
+            console.log("Initializing Pyodide...");
+            pyodide = await loadPyodide();
+            
+            console.log("Setting up modules...");
+            // Test if we can import basic modules
+            await pyodide.runPython(`
+import struct
+print("struct module loaded")
+
+# Test basic file parsing
+print("Testing basic functionality...")
+data = b'ITSF'
+print(f"Test data: {data}")
+            `);
+            
+            return pyodide;
+        }
+        
+        async function testCHM() {
+            const fileInput = document.getElementById('fileInput');
+            const output = document.getElementById('output');
+            
+            if (!fileInput.files[0]) {
+                output.innerHTML = "Please select a CHM file first";
+                return;
+            }
+            
+            try {
+                await initPyodide();
+                
+                const file = fileInput.files[0];
+                console.log(`Testing file: ${file.name}, size: ${file.size}`);
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                console.log(`ArrayBuffer size: ${arrayBuffer.byteLength}`);
+                console.log(`First 10 bytes:`, Array.from(uint8Array.slice(0, 10)));
+                
+                // Check if it's a valid CHM file
+                const header = new TextDecoder().decode(uint8Array.slice(0, 4));
+                console.log(`Header: ${header}`);
+                
+                if (header !== 'ITSF') {
+                    output.innerHTML = `❌ Not a valid CHM file. Header: ${header}`;
+                    return;
+                }
+                
+                output.innerHTML = `✅ Valid CHM file detected. Size: ${file.size} bytes`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                output.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
