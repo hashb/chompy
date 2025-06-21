@@ -860,6 +860,83 @@ async function processHTMLContent(htmlContent, basePath) {
         }
     }
     
+    // Add compatibility shims for legacy HTML Help functions at the end
+    const hhctrlShims = `
+<!-- HTML Help Compatibility Shims -->
+<script>
+// Create hhctrl object for legacy CHM compatibility
+if (typeof hhctrl === 'undefined') {
+    window.hhctrl = {
+        // TextPopup function - shows popup text
+        TextPopup: function(text, font, size, foreColor, backColor) {
+            console.log('hhctrl.TextPopup called:', text);
+            // Create a simple modal-style popup
+            const popup = document.createElement('div');
+            popup.style.cssText = \`
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: \${backColor || '#FFFFC0'};
+                color: \${foreColor || '#000000'};
+                border: 1px solid #000;
+                padding: 10px;
+                font-family: \${font || 'Arial'};
+                font-size: \${size || '12'}px;
+                z-index: 10000;
+                max-width: 400px;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+                border-radius: 4px;
+            \`;
+            popup.innerHTML = text + '<br><br><button onclick="this.parentElement.remove()">Close</button>';
+            document.body.appendChild(popup);
+            return popup;
+        },
+        
+        // HH_HELP_CONTEXT function
+        HH_HELP_CONTEXT: function(contextId) {
+            console.log('hhctrl.HH_HELP_CONTEXT called:', contextId);
+            // In a real implementation, this would navigate to a specific help topic
+            return false;
+        },
+        
+        // Other common HTML Help functions
+        HtmlHelp: function(hwndCaller, pszFile, uCommand, dwData) {
+            console.log('hhctrl.HtmlHelp called:', arguments);
+            return false;
+        }
+    };
+}
+
+// Legacy functions that might be called directly
+if (typeof TextPopup === 'undefined') {
+    window.TextPopup = window.hhctrl.TextPopup;
+}
+
+if (typeof HtmlHelp === 'undefined') {
+    window.HtmlHelp = window.hhctrl.HtmlHelp;
+}
+
+// Handle legacy popup links and events
+document.addEventListener('click', function(e) {
+    const target = e.target;
+    
+    // Handle legacy popup attributes
+    if (target.hasAttribute('onclick')) {
+        const onclick = target.getAttribute('onclick');
+        if (onclick.includes('TextPopup') || onclick.includes('hhctrl')) {
+            console.log('Legacy popup click intercepted:', onclick);
+            // Let the event proceed but ensure our shims are available
+        }
+    }
+}, true);
+
+console.log('HTML Help compatibility shims loaded');
+</script>
+`;
+
+    processedHTML += hhctrlShims;
+    
     return processedHTML;
 }
 
